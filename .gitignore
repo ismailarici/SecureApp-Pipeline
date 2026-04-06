@@ -1,0 +1,9 @@
+# Ignore security scan reports
+reports/
+
+# Ignore Python cache files
+__pycache__/
+*.pyc
+
+# Ignore environment files (these can contain secrets)
+.env
