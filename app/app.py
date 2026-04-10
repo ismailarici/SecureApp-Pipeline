@@ -5,6 +5,8 @@ import os
 
 app = Flask(__name__)
 app.secret_key = "hardcoded_secret_123"
+AWS_ACCESS_KEY_ID = "AKIAIOSFODNN7EXAMPLE"
+AWS_SECRET_ACCESS_KEY = "wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY"
 
 def init_db():
     conn = sqlite3.connect('users.db')
