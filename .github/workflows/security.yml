@@ -64,21 +64,3 @@ jobs:
         with:
           name: semgrep-report
           path: reports/semgrep-report.json
-
-        semgrep:
-    name: Semgrep SAST Scan
-    runs-on: ubuntu-latest
-    container:
-      image: semgrep/semgrep
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Run Semgrep
-        run: semgrep scan --config=auto app/ --json --output=reports/semgrep-report.json || true
-
-      - name: Upload Semgrep Report
-        uses: actions/upload-artifact@v4
-        with:
-          name: semgrep-report
-          path: reports/semgrep-report.json
