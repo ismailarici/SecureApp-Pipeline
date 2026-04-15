@@ -38,6 +38,9 @@ jobs:
       - name: Install Bandit
         run: pip install bandit
 
+      - name: Create reports directory
+        run: mkdir -p reports
+
       - name: Run Bandit
         run: bandit -r app/app.py -f json -o reports/bandit-report.json || true
 
@@ -79,6 +82,9 @@ jobs:
 
       - name: Install pip-audit
         run: pip install pip-audit
+
+      - name: Create reports directory
+        run: mkdir -p reports
 
       - name: Run pip-audit
         run: pip-audit -r app/requirements.txt -o reports/pip-audit-report.json -f json || true
