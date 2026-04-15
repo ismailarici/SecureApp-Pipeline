@@ -64,3 +64,27 @@ jobs:
         with:
           name: semgrep-report
           path: reports/semgrep-report.json
+
+  pip-audit:
+    name: pip-audit SCA Scan
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+
+      - name: Install pip-audit
+        run: pip install pip-audit
+
+      - name: Run pip-audit
+        run: pip-audit -r app/requirements.txt -o reports/pip-audit-report.json -f json || true
+
+      - name: Upload pip-audit Report
+        uses: actions/upload-artifact@v4
+        with:
+          name: pip-audit-report
+          path: reports/pip-audit-report.json
