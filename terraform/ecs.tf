@@ -3,6 +3,8 @@ resource "aws_security_group" "ecs_tasks" {
   description = "Allow inbound traffic to Flask app"
   vpc_id      = aws_vpc.main.id
 
+  #checkov:skip=CKV_AWS_382: Egress restriction requires knowing all external endpoints. Acceptable for dev environment. Production would restrict to specific CIDRs.
+
   ingress {
     from_port   = var.container_port
     to_port     = var.container_port
@@ -26,25 +28,13 @@ resource "aws_security_group" "ecs_tasks" {
 }
 
 resource "aws_cloudwatch_log_group" "app" {
-  name              = "/ecs/${var.project_name}"
-  retention_in_days = 30
+  name = "/ecs/${var.project_name}"
+
+  #checkov:skip=CKV_AWS_158: KMS CMK encryption for log groups adds cost inappropriate for a dev environment. AWS-managed encryption is acceptable here.
+  retention_in_days = 365
 
   tags = {
     Name    = "${var.project_name}-logs"
-    Project = var.project_name
-  }
-}
-
-resource "aws_ecs_cluster" "main" {
-  name = "${var.project_name}-cluster"
-
-  setting {
-    name  = "containerInsights"
-    value = "enabled"
-  }
-
-  tags = {
-    Name    = "${var.project_name}-cluster"
     Project = var.project_name
   }
 }
@@ -102,6 +92,8 @@ resource "aws_ecs_service" "app" {
   desired_count   = 1
   launch_type     = "FARGATE"
 
+  #checkov:skip=CKV_AWS_333: Public IP required for direct container access in this dev environment. Production would use private subnets with an ALB.
+
   network_configuration {
     subnets          = [aws_subnet.public_a.id, aws_subnet.public_b.id]
     security_groups  = [aws_security_group.ecs_tasks.id]
@@ -110,6 +102,15 @@ resource "aws_ecs_service" "app" {
 
   tags = {
     Name    = "${var.project_name}-service"
+    Project = var.project_name
+  }
+}
+
+resource "aws_default_security_group" "default" {
+  vpc_id = aws_vpc.main.id
+
+  tags = {
+    Name    = "${var.project_name}-default-sg-locked"
     Project = var.project_name
   }
 }

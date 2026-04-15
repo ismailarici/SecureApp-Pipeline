@@ -1,6 +1,9 @@
 resource "aws_ecr_repository" "app" {
-  name                 = "${var.project_name}-app"
-  image_tag_mutability = "MUTABLE"
+  name = "${var.project_name}-app"
+
+  #checkov:skip=CKV_AWS_136: KMS CMK encryption adds cost and operational complexity inappropriate for a dev learning environment. AES256 with AWS-managed keys is acceptable here.
+  #checkov:skip=CKV_AWS_51: Moved to IMMUTABLE after initial Checkov scan. This skip is no longer needed but retained for documentation purposes.
+  image_tag_mutability = "IMMUTABLE"
 
   image_scanning_configuration {
     scan_on_push = true

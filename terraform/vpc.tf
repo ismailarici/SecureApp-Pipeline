@@ -3,6 +3,9 @@ resource "aws_vpc" "main" {
   enable_dns_hostnames = true
   enable_dns_support   = true
 
+  #checkov:skip=CKV2_AWS_11: VPC flow logging requires additional S3/CloudWatch infrastructure. Acceptable to skip in dev. Would be required in production for network visibility.
+  #checkov:skip=CKV2_AWS_12: Default security group locked down via aws_default_security_group resource in ecs.tf.
+
   tags = {
     Name    = "${var.project_name}-vpc"
     Project = var.project_name
@@ -10,9 +13,11 @@ resource "aws_vpc" "main" {
 }
 
 resource "aws_subnet" "public_a" {
-  vpc_id                  = aws_vpc.main.id
-  cidr_block              = "10.0.1.0/24"
-  availability_zone       = "${var.aws_region}a"
+  vpc_id            = aws_vpc.main.id
+  cidr_block        = "10.0.1.0/24"
+  availability_zone = "${var.aws_region}a"
+
+  #checkov:skip=CKV_AWS_130: Public subnets intentionally auto-assign IPs for direct container access in dev. Production would use private subnets with NAT gateway.
   map_public_ip_on_launch = true
 
   tags = {
@@ -22,9 +27,11 @@ resource "aws_subnet" "public_a" {
 }
 
 resource "aws_subnet" "public_b" {
-  vpc_id                  = aws_vpc.main.id
-  cidr_block              = "10.0.2.0/24"
-  availability_zone       = "${var.aws_region}b"
+  vpc_id            = aws_vpc.main.id
+  cidr_block        = "10.0.2.0/24"
+  availability_zone = "${var.aws_region}b"
+
+  #checkov:skip=CKV_AWS_130: Public subnets intentionally auto-assign IPs for direct container access in dev. Production would use private subnets with NAT gateway.
   map_public_ip_on_launch = true
 
   tags = {
