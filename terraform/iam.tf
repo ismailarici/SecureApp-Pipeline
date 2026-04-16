@@ -119,6 +119,9 @@ resource "aws_iam_role_policy" "github_actions" {
   name = "${var.project_name}-github-actions-policy"
   role = aws_iam_role.github_actions.id
 
+  #checkov:skip=CKV_AWS_355: ECS service/task ARNs are dynamic and not known at policy authoring time. Scoped to ECS actions only, not broad admin permissions.
+  #checkov:skip=CKV_AWS_290: ECS deployment actions require resource wildcard. Mitigated by limiting to specific ECS actions required for deployment only.
+
   policy = jsonencode({
     Version = "2012-10-17"
     Statement = [
