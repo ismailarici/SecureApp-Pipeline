@@ -39,6 +39,20 @@ resource "aws_cloudwatch_log_group" "app" {
   }
 }
 
+resource "aws_ecs_cluster" "main" {
+  name = "${var.project_name}-cluster"
+
+  setting {
+    name  = "containerInsights"
+    value = "enabled"
+  }
+
+  tags = {
+    Name    = "${var.project_name}-cluster"
+    Project = var.project_name
+  }
+}
+
 resource "aws_ecs_task_definition" "app" {
   family                   = "${var.project_name}-app"
   network_mode             = "awsvpc"
