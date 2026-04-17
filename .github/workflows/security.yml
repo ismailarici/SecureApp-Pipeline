@@ -271,5 +271,5 @@ jobs:
           target: ${{ needs.deploy.outputs.app_url }}
           rules_file_name: ".zap/rules.tsv"
           cmd_options: "-I"
-          artifact_name: "zap-report"
+          artifact_name: "zap-report-${{ github.run_id }}"
           fail_action: true
