@@ -26,6 +26,9 @@ jobs:
   bandit:
     name: Bandit Python Security Scan
     runs-on: ubuntu-latest
+    permissions:
+      security-events: write
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -42,13 +45,14 @@ jobs:
         run: mkdir -p reports
 
       - name: Run Bandit
-        run: bandit -r app/app.py -f json -o reports/bandit-report.json || true
+        run: bandit -r app/app.py -f sarif -o reports/bandit-report.sarif || true
 
-      - name: Upload Bandit Report
-        uses: actions/upload-artifact@v4
+      - name: Upload Bandit SARIF to GitHub Security tab
+        uses: github/codeql-action/upload-sarif@v3
+        if: always()
         with:
-          name: bandit-report
-          path: reports/bandit-report.json
+          sarif_file: reports/bandit-report.sarif
+          category: bandit
 
   semgrep:
     name: Semgrep SAST Scan
