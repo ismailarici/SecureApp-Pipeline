@@ -266,7 +266,7 @@ jobs:
         run: chmod a+w ${{ github.workspace }}
 
       - name: Run ZAP Baseline Scan
-        uses: zaproxy/action-baseline@v0.12.0
+        uses: zaproxy/action-baseline@v0.10.0
         with:
           target: ${{ needs.deploy.outputs.app_url }}
           rules_file_name: ".zap/rules.tsv"
