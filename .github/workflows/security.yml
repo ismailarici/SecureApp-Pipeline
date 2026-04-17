@@ -253,6 +253,7 @@ jobs:
     needs: [deploy]
     permissions:
       contents: read
+      issues: write
 
     steps:
       - name: Checkout code
