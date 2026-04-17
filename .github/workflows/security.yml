@@ -235,6 +235,9 @@ jobs:
       - name: Create reports directory
         run: mkdir -p reports
 
+      - name: Fix workspace permissions for ZAP
+        run: chmod a+w
+
       - name: Run ZAP Baseline Scan
         uses: zaproxy/action-baseline@v0.12.0
         with:
