@@ -45,7 +45,11 @@ jobs:
         run: mkdir -p reports
 
       - name: Run Bandit
-        run: bandit -r app/app.py -f sarif -o reports/bandit-report.sarif || true
+        run: |
+          bandit -r app/app.py -f sarif -o reports/bandit-report.sarif || true
+          echo "Exit code: $?"
+          ls -la reports/
+          cat reports/bandit-report.sarif || echo "File is empty or missing"
 
       - name: Upload Bandit SARIF to GitHub Security tab
         uses: github/codeql-action/upload-sarif@v3
