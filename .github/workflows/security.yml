@@ -241,7 +241,7 @@ jobs:
       - name: Run ZAP Baseline Scan
         uses: zaproxy/action-baseline@v0.12.0
         with:
-          target: "http://54.209.202.206:5000"
+          target: "http://54.81.145.6:5000"
           rules_file_name: ".zap/rules.tsv"
           cmd_options: "-I"
           artifact_name: "zap-report"
