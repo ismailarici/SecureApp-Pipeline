@@ -174,6 +174,8 @@ jobs:
     permissions:
       id-token: write
       contents: read
+    outputs:
+      app_url: ${{ steps.get-ip.outputs.app_url }}
 
     steps:
       - name: Checkout code
@@ -220,6 +222,30 @@ jobs:
           service: secureapp-service
           cluster: secureapp-cluster
           wait-for-service-stability: true
+      - name: Get ECS task public IP
+        id: get-ip
+        run: |
+          TASK_ARN=$(aws ecs list-tasks \
+            --cluster secureapp-cluster \
+            --service-name secureapp-service \
+            --query 'taskArns[0]' \
+            --output text \
+            --region us-east-1)
+
+          ENI_ID=$(aws ecs describe-tasks \
+            --cluster secureapp-cluster \
+            --tasks $TASK_ARN \
+            --query 'tasks[0].attachments[0].details[?name==`networkInterfaceId`].value' \
+            --output text \
+            --region us-east-1)
+
+          PUBLIC_IP=$(aws ec2 describe-network-interfaces \
+            --network-interface-ids $ENI_ID \
+            --query 'NetworkInterfaces[0].Association.PublicIp' \
+            --output text \
+            --region us-east-1)
+
+          echo "app_url=http://$PUBLIC_IP:5000" >> $GITHUB_OUTPUT
 
   zap:
     name: OWASP ZAP DAST Scan
@@ -241,7 +267,7 @@ jobs:
       - name: Run ZAP Baseline Scan
         uses: zaproxy/action-baseline@v0.12.0
         with:
-          target: "http://54.81.145.6:5000"
+          target: ${{ needs.deploy.outputs.app_url }}
           rules_file_name: ".zap/rules.tsv"
           cmd_options: "-I"
           artifact_name: "zap-report"
