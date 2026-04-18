@@ -401,7 +401,7 @@ jobs:
                           'id': rule_id,
                           'name': alert.get('name', rule_id),
                           'shortDescription': {'text': alert.get('name', rule_id)},
-                          'helpUri': alert.get('reference', 'https://www.zaproxy.org')
+                          'helpUri': 'https://www.zaproxy.org/docs/alerts/' + str(rule_id)
                       })
                   for instance in alert.get('instances', [{}]):
                       results.append({
@@ -411,9 +411,15 @@ jobs:
                           'locations': [{
                               'physicalLocation': {
                                   'artifactLocation': {
-                                      'uri': instance.get('uri', site.get('name', 'unknown'))
-                                  }
-                              }
+                                      'uri': 'app/app.py',
+                                      'uriBaseId': '%SRCROOT%'
+                                  },
+                                  'region': {'startLine': 1}
+                              },
+                              'logicalLocations': [{
+                                  'name': instance.get('uri', site.get('name', 'unknown')),
+                                  'kind': 'url'
+                              }]
                           }]
                       })
 
