@@ -25,6 +25,7 @@ was made deliberately and can be defended. It covers:
 
 ## Pipeline Architecture
 
+```
 ┌─────────────────────────────────────────────────────────────┐
 │ On Every Push │
 └─────────────────────────────────────────────────────────────┘
@@ -71,6 +72,7 @@ was made deliberately and can be defended. It covers:
 ┌─────────────────────────────────────┐
 │ GitHub Security Tab (SARIF) │ All findings, one audit trail
 └─────────────────────────────────────┘
+```
 
 ---
 
@@ -233,6 +235,7 @@ cd terraform && checkov -d .
 
 ## Repository Structure
 
+```
 SecureApp-Pipeline/
 ├── app/ # Flask application and Dockerfile
 ├── terraform/ # AWS infrastructure as code
@@ -240,6 +243,7 @@ SecureApp-Pipeline/
 ├── .semgrep/ # Custom Semgrep rules
 ├── .zap/ # ZAP scan configuration
 └── reports/ # Local scan outputs (gitignored)
+```
 
 ---
 
