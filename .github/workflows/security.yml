@@ -335,6 +335,7 @@ jobs:
     permissions:
       contents: read
       issues: write
+      security-events: write
 
     steps:
       - name: Checkout code
@@ -371,3 +372,75 @@ jobs:
             fi
           fi
           echo "ZAP scan passed"
+
+      - name: Convert ZAP JSON to SARIF
+        if: always()
+        run: |
+          python3 -c "
+          import json
+
+          try:
+              with open('report_json.json') as f:
+                  data = json.load(f)
+          except:
+              print('No ZAP report found, creating empty SARIF')
+              data = {'site': []}
+
+          results = []
+          rules = []
+          rule_ids = set()
+
+          risk_map = {'0': 'note', '1': 'warning', '2': 'warning', '3': 'error'}
+
+          for site in data.get('site', []):
+              for alert in site.get('alerts', []):
+                  rule_id = alert.get('pluginid', 'unknown')
+                  if rule_id not in rule_ids:
+                      rule_ids.add(rule_id)
+                      rules.append({
+                          'id': rule_id,
+                          'name': alert.get('name', rule_id),
+                          'shortDescription': {'text': alert.get('name', rule_id)},
+                          'helpUri': alert.get('reference', 'https://www.zaproxy.org')
+                      })
+                  for instance in alert.get('instances', [{}]):
+                      results.append({
+                          'ruleId': rule_id,
+                          'level': risk_map.get(str(alert.get('riskcode', 0)), 'note'),
+                          'message': {'text': alert.get('desc', alert.get('name', ''))},
+                          'locations': [{
+                              'physicalLocation': {
+                                  'artifactLocation': {
+                                      'uri': instance.get('uri', site.get('name', 'unknown'))
+                                  }
+                              }
+                          }]
+                      })
+
+          sarif = {
+              'version': '2.1.0',
+              '\$schema': 'https://json.schemastore.org/sarif-2.1.0.json',
+              'runs': [{
+                  'tool': {
+                      'driver': {
+                          'name': 'OWASP ZAP',
+                          'version': '2.14.0',
+                          'rules': rules
+                      }
+                  },
+                  'results': results
+              }]
+          }
+
+          with open('reports/zap-report.sarif', 'w') as f:
+              json.dump(sarif, f, indent=2)
+
+          print(f'Converted {len(results)} ZAP findings to SARIF')
+          "
+
+      - name: Upload ZAP SARIF to GitHub Security tab
+        uses: github/codeql-action/upload-sarif@v3
+        if: always()
+        with:
+          sarif_file: reports/zap-report.sarif
+          category: zap
