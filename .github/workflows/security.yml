@@ -38,18 +38,70 @@ jobs:
         with:
           python-version: "3.13"
 
-      - name: Install Bandit
-        run: pip install bandit
+      - name: Install Bandit and converter
+        run: pip install bandit bandit-sarif-formatter
 
       - name: Create reports directory
         run: mkdir -p reports
 
       - name: Run Bandit
+        run: bandit -r app/app.py -f json -o reports/bandit-report.json || true
+
+      - name: Convert Bandit JSON to SARIF
         run: |
-          bandit -r app/app.py -f sarif -o reports/bandit-report.sarif || true
-          echo "Exit code: $?"
-          ls -la reports/
-          cat reports/bandit-report.sarif || echo "File is empty or missing"
+          python3 -c "
+          import json, sys
+
+          with open('reports/bandit-report.json') as f:
+              data = json.load(f)
+
+          results = []
+          rules = []
+          rule_ids = set()
+
+          for result in data.get('results', []):
+              rule_id = result['test_id']
+              if rule_id not in rule_ids:
+                  rule_ids.add(rule_id)
+                  rules.append({
+                      'id': rule_id,
+                      'name': result['test_name'],
+                      'shortDescription': {'text': result['test_name']},
+                      'helpUri': 'https://bandit.readthedocs.io'
+                  })
+              severity_map = {'LOW': 'warning', 'MEDIUM': 'error', 'HIGH': 'error'}
+              results.append({
+                  'ruleId': rule_id,
+                  'level': severity_map.get(result['issue_severity'], 'warning'),
+                  'message': {'text': result['issue_text']},
+                  'locations': [{
+                      'physicalLocation': {
+                          'artifactLocation': {'uri': result['filename']},
+                          'region': {'startLine': result['line_number']}
+                      }
+                  }]
+              })
+
+          sarif = {
+              'version': '2.1.0',
+              '\$schema': 'https://json.schemastore.org/sarif-2.1.0.json',
+              'runs': [{
+                  'tool': {
+                      'driver': {
+                          'name': 'Bandit',
+                          'version': '1.9.4',
+                          'rules': rules
+                      }
+                  },
+                  'results': results
+              }]
+          }
+
+          with open('reports/bandit-report.sarif', 'w') as f:
+              json.dump(sarif, f, indent=2)
+
+          print(f'Converted {len(results)} findings to SARIF')
+          "
 
       - name: Upload Bandit SARIF to GitHub Security tab
         uses: github/codeql-action/upload-sarif@v3
